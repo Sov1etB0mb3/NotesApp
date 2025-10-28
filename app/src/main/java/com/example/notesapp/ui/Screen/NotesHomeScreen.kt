@@ -35,6 +35,7 @@ import com.example.notesapp.util.ExportUtil
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.material.icons.filled.Label
+import androidx.compose.material.icons.sharp.Settings
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -85,7 +86,7 @@ fun NotesHomeScreen(
                         )
                     }
                     IconButton(onClick = { navController.navigate("settings") }) {
-                        Icon(Icons.Filled.Add, contentDescription = "Cài đặt")
+                        Icon(Icons.Sharp.Settings, contentDescription = "Cài đặt")
                     }
                 }
             )
