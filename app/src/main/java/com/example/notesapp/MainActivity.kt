@@ -34,6 +34,7 @@ class MainActivity : ComponentActivity() {
         NoteViewModelFactory(application, repo)
     }
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel.loadUserFromPrefs() //  tự động load user offline khi mở app

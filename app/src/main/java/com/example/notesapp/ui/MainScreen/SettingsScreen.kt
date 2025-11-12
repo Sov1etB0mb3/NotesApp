@@ -1,5 +1,7 @@
 package com.example.notesapp.ui.MainScreen
 
+import android.R
+import android.graphics.drawable.Icon
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -8,12 +10,35 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.notesapp.ui.NoteViewModel
 import androidx.compose.ui.graphics.vector.*
+import androidx.compose.material.icons.*
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.HorizontalDivider
+import com.example.notesapp.data.NoteDao
+import com.example.notesapp.data.NoteRepository
+import com.example.notesapp.model.Note
+import io.github.jan.supabase.createSupabaseClient
+import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.postgrest.from
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 
+val supabase = createSupabaseClient(
+    supabaseUrl = ""
+    supabaseKey = ""
+) {
+    install(Postgrest)
+}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     navController: NavController,
-    viewModel: NoteViewModel
+    viewModel: NoteViewModel,
 ) {
     val darkMode by viewModel.darkMode.collectAsState()
     val layoutIsGrid by viewModel.layoutIsGrid.collectAsState()
@@ -38,7 +63,11 @@ fun SettingsScreen(
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Divider(Modifier.padding(vertical = 8.dp))
+            HorizontalDivider(
+                Modifier.padding(vertical = 8.dp),
+                DividerDefaults.Thickness,
+                DividerDefaults.color
+            )
 
 // Lấy dữ liệu user từ ViewModel
             val userName by viewModel.userName
@@ -91,17 +120,41 @@ fun SettingsScreen(
                             Text("Đăng nhập / Đăng ký")
                         }
                     }
+                    var showalert by remember { mutableStateOf(false) }
                     Button(
                         onClick ={
-                            if (userId!=null){
+//                            if (userId!=null){
+//
+//                            }
+//                            else{
+//                               showalert=true
+//                            }
+                                //temp
 
+                                val allNote: Flow<List<Note>> = viewModel.notes
+                            CoroutineScope(Dispatchers.IO).launch {
+                                allNote.collect { notesList ->
+                                    println("Received list:")
+                                    notesList.forEach { note ->
+                                        println("→ ${note.title}: ${note.content}")
+                                    }
+                                }
                             }
+                                syncNote(allNote)
+
+
+                            //endtemp
                         } ,
                         modifier = Modifier.fillMaxWidth()
-                    ){
+                    ) {
                             Text("Đồng bộ dữ liệu")
                     }
-
+                    Alert_ChuaDangNhap(
+                        {showalert=false},
+                        "Lỗi",
+                        "Bạn cần đăng nhập để đồng bộ hóa",
+                        Icons.Default.Warning,
+                        showalert)
                 }
             }
 
@@ -135,13 +188,15 @@ fun SettingsScreen(
 }
 @Composable
 fun Alert_ChuaDangNhap(
-    onDismissRequest: () -> Unit,
-    onConfirmation: () -> Unit,
-    dialogTitle: String="Lỗi",
-    dialogText: String="Bạn cần đăng nhập để đông bộ hóa",
+    onDismiss: () -> Unit,
+    dialogTitle: String,
+    dialogText: String,
     icon: ImageVector,
-) {
+    showAlert: Boolean
+
+) { if (showAlert){
     AlertDialog(
+
         icon = {
             Icon(icon, contentDescription = " AlertIcon")
         },
@@ -151,27 +206,31 @@ fun Alert_ChuaDangNhap(
         text = {
             Text(text = dialogText)
         },
-        onDismissRequest = {
-            onDismissRequest()
-        },
+        onDismissRequest = {},
         confirmButton = {
             TextButton(
                 onClick = {
-                    onConfirmation()
+                    onDismiss()
                 }
             ) {
-                Text("Xác nhận")
+                Text("OK")
             }
         },
-        dismissButton = {
-            TextButton(
-                onClick = {
-                    onDismissRequest()
-                }
-            ) {
-                Text("Dismiss")
-            }
-        }
     )
 }
+}
+private fun syncNote(ls_note: Flow<List<Note>>){
+    CoroutineScope(Dispatchers.IO).launch {
+        ls_note.collect { notesList->
+            try {
 
+                val result= supabase.from("tbl_note").insert(notesList)
+
+            }
+            catch (e: Exception){
+                println(e.message)
+            }
+        }
+
+    }
+    }
