@@ -3,6 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("kotlin-kapt")
+    kotlin("plugin.serialization")
 }
 
 android {
@@ -51,7 +52,7 @@ android {
 }
 
 dependencies {
-    val roomVersion = "2.6.1"
+    val roomVersion = "2.7.1"
     val navVersion = "2.8.0"
     val lifecycleVersion = "2.8.4"
     val material3Version = "1.2.1"
@@ -85,4 +86,15 @@ dependencies {
     androidTestImplementation(platform("androidx.compose:compose-bom:2024.10.00"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+    //supabase dependencies
+
+    implementation(platform("io.github.jan-tennert.supabase:bom:3.0.0"))
+    implementation("io.github.jan-tennert.supabase:postgrest-kt")
+    implementation("io.github.jan-tennert.supabase:auth-kt")
+    implementation("io.github.jan-tennert.supabase:realtime-kt")
+
+    implementation("io.ktor:ktor-client-okhttp:3.3.0")
+    implementation("io.ktor:ktor-client-core:3.3.0")
+
 }
