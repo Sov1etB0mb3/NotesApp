@@ -68,17 +68,16 @@ class MainActivity : ComponentActivity() {
                     composable("addNote") {
                         NoteAddScreen(
                             navController = navController,
-                            onSave = { title, content ->
+                            viewModel = viewModel,
+                            onSave = { title, content, category ->
                                 viewModel.addNote(
                                     Note(
                                         title = title,
                                         content = content,
-                                        category = if (viewModel.selectedCategory.value == "Tất cả")
-                                            "Chưa phân loại"
-                                        else viewModel.selectedCategory.value
+                                        category = category
                                     )
                                 )
-                                navController.popBackStack() // trở về sau khi lưu
+                                navController.popBackStack()
                             }
                         )
                     }
