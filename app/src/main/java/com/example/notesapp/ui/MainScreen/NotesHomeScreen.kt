@@ -79,6 +79,7 @@ fun NotesHomeScreen(
                 title = { Text("Ghi chú") },
 
                 actions = {
+//                    SearchBar(text) { }
                     IconButton(onClick = { navController.navigate("categories") }) {
                         Icon(
                             imageVector = Icons.Default.Label, //  biểu tượng nhãn/phân loại
@@ -88,6 +89,7 @@ fun NotesHomeScreen(
                     IconButton(onClick = { navController.navigate("settings") }) {
                         Icon(Icons.Sharp.Settings, contentDescription = "Cài đặt")
                     }
+
                 }
             )
         },

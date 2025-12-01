@@ -87,7 +87,7 @@ class MainActivity : ComponentActivity() {
                     composable(
                         route = "editNote/{noteId}",
                         arguments = listOf(
-                            navArgument("noteId") { type = NavType.IntType }
+                            navArgument("noteId") { type = NavType.StringType }
                         )
                     ) { backStackEntry ->
                         val noteId = backStackEntry.arguments?.getString("noteId")
