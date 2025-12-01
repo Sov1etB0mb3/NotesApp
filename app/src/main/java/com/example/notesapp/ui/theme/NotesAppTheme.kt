@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 
-private val LightColors = lightColorScheme(
+val LightColors = lightColorScheme(
     primary = Color(0xFF6750A4),
     onPrimary = Color.White,
     background = Color(0xFFFFFFFF),
@@ -14,7 +14,7 @@ private val LightColors = lightColorScheme(
     onSurface = Color(0xFF000000)
 )
 
-private val DarkColors = darkColorScheme(
+val DarkColors = darkColorScheme(
     primary = Color(0xFFBB86FC),
     onPrimary = Color.Black,
     background = Color(0xFF121212),
@@ -28,9 +28,10 @@ private val BaseTypography = Typography()
 fun NotesAppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     fontSizeIndex: Int = 1, // 0 small, 1 medium, 2 large
+    colorsOverride: ColorScheme? = null, // thêm parameter này
     content: @Composable () -> Unit
 ) {
-    val colors = if (darkTheme) DarkColors else LightColors
+    val colors = colorsOverride ?: if (darkTheme) DarkColors else LightColors
 
     // adjust typography body sizes (only simple adjustments)
     val typography = when (fontSizeIndex) {
@@ -51,3 +52,4 @@ fun NotesAppTheme(
         content = content
     )
 }
+
