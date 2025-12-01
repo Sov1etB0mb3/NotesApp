@@ -36,6 +36,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.material.icons.filled.Label
 import androidx.compose.material.icons.sharp.Settings
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -53,13 +55,15 @@ fun NotesHomeScreen(
     val layoutIsGrid by viewModel.layoutIsGrid.collectAsState()
     val darkMode by viewModel.darkMode.collectAsState()
 
+
+
     // UI local states
     var contextMenuNote by remember { mutableStateOf<Note?>(null) }
     var showDeleteConfirmFor by remember { mutableStateOf<Note?>(null) }
     var showMoveDialogFor by remember { mutableStateOf<Note?>(null) }
     var showAddCategoryDialog by remember { mutableStateOf(false) }
     var newCategoryName by remember { mutableStateOf("") }
-
+    var searchText by remember{mutableStateOf("")}
     // map font index to sizes (safe)
     val fontSizes = listOf(14.sp, 16.sp, 18.sp)
     val fontSize = fontSizes.getOrElse(fontSizeIndex.coerceIn(0, fontSizes.lastIndex)) { 16.sp }
@@ -79,7 +83,6 @@ fun NotesHomeScreen(
                 title = { Text("Ghi chú") },
 
                 actions = {
-//                    SearchBar(text) { }
                     IconButton(onClick = { navController.navigate("categories") }) {
                         Icon(
                             imageVector = Icons.Default.Label, //  biểu tượng nhãn/phân loại
