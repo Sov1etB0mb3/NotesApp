@@ -36,8 +36,6 @@ import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.material.icons.filled.Label
 import androidx.compose.material.icons.sharp.Settings
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -55,15 +53,14 @@ fun NotesHomeScreen(
     val layoutIsGrid by viewModel.layoutIsGrid.collectAsState()
     val darkMode by viewModel.darkMode.collectAsState()
 
-
-
     // UI local states
     var contextMenuNote by remember { mutableStateOf<Note?>(null) }
     var showDeleteConfirmFor by remember { mutableStateOf<Note?>(null) }
     var showMoveDialogFor by remember { mutableStateOf<Note?>(null) }
     var showAddCategoryDialog by remember { mutableStateOf(false) }
     var newCategoryName by remember { mutableStateOf("") }
-    var searchText by remember{mutableStateOf("")}
+    var searchQuery by remember { mutableStateOf("") }  // update new: state cho search
+
     // map font index to sizes (safe)
     val fontSizes = listOf(14.sp, 16.sp, 18.sp)
     val fontSize = fontSizes.getOrElse(fontSizeIndex.coerceIn(0, fontSizes.lastIndex)) { 16.sp }
@@ -75,7 +72,11 @@ fun NotesHomeScreen(
                     || (selectedCategory == "Chưa phân loại" && it.category.isBlank())
                     || it.category == selectedCategory
             ) }
-    val displayed = (pinned + others).distinctBy { it.id }
+
+    // update new: filter theo searchQuery
+    val displayed = (pinned + others)
+        .distinctBy { it.id }
+        .filter { it.title.contains(searchQuery, ignoreCase = true) || it.content.contains(searchQuery, ignoreCase = true) }
 
     Scaffold(
         topBar = {
@@ -85,14 +86,13 @@ fun NotesHomeScreen(
                 actions = {
                     IconButton(onClick = { navController.navigate("categories") }) {
                         Icon(
-                            imageVector = Icons.Default.Label, //  biểu tượng nhãn/phân loại
+                            imageVector = Icons.Default.Label,
                             contentDescription = "Phân loại"
                         )
                     }
                     IconButton(onClick = { navController.navigate("settings") }) {
                         Icon(Icons.Sharp.Settings, contentDescription = "Cài đặt")
                     }
-
                 }
             )
         },
@@ -107,8 +107,18 @@ fun NotesHomeScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // --- CATEGORY BAR (LazyRow) ---
-            // fixed first two items then other categories, then add button at end
+            // SEARCH BAR
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                placeholder = { Text("Tìm kiếm ghi chú...") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                singleLine = true
+            )
+
+            // CATEGORY BAR (LazyRow)
             val otherCats = categories.filter { it != "Tất cả" && it != "Chưa phân loại" }
             LazyRow(
                 modifier = Modifier
@@ -138,41 +148,10 @@ fun NotesHomeScreen(
                         onClick = { viewModel.selectCategory(cat) }
                     )
                 }
-
-
             }
 
-            // Add category dialog (simple input)
-            if (showAddCategoryDialog) {
-                AlertDialog(
-                    onDismissRequest = { showAddCategoryDialog = false },
-                    title = { Text("Thêm phân loại") },
-                    text = {
-                        OutlinedTextField(
-                            value = newCategoryName,
-                            onValueChange = { newCategoryName = it },
-                            label = { Text("Tên phân loại") },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            val name = newCategoryName.trim()
-                            if (name.isNotEmpty()) {
-                                viewModel.addCategory(name)
-                                newCategoryName = ""
-                                showAddCategoryDialog = false
-                            }
-                        }) { Text("Thêm") }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { showAddCategoryDialog = false }) { Text("Hủy") }
-                    }
-                )
-            }
 
-            // --- NOTES (grid or list) ---
+            //  NOTES (grid or list)
             if (layoutIsGrid) {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
@@ -215,7 +194,7 @@ fun NotesHomeScreen(
         }
     }
 
-    // --- CONTEXT MENU (long-press) ---
+    // CONTEXT MENU (long-press)
     contextMenuNote?.let { note ->
         AlertDialog(
             onDismissRequest = { contextMenuNote = null },
@@ -260,7 +239,7 @@ fun NotesHomeScreen(
         )
     }
 
-    // --- MOVE-TO CATEGORY DIALOG ---
+    //  MOVE-TO CATEGORY DIALOG
     showMoveDialogFor?.let { note ->
         var chosen by remember { mutableStateOf("") }
         AlertDialog(
@@ -302,7 +281,7 @@ fun NotesHomeScreen(
         )
     }
 
-    // --- DELETE CONFIRM ---
+    //  DELETE CONFIRM
     showDeleteConfirmFor?.let { note ->
         AlertDialog(
             onDismissRequest = { showDeleteConfirmFor = null },
