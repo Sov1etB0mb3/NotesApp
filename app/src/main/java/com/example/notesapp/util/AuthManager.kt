@@ -2,6 +2,7 @@ package com.example.notesapp.util
 
 import android.R
 import android.content.Context
+import android.net.Uri
 import com.example.notesapp.data.GuestManager
 import com.example.notesapp.data.GuestManager.setGuestMode
 import com.example.notesapp.data.supaBaseClientProvider
@@ -79,8 +80,35 @@ object AuthManager {
 
     //  Quên mật khẩu (tạm thời mock)
     suspend fun resetPassword(email: String): Result<Unit> {
-        return if (email.isNotBlank()) Result.success(Unit)
-        else Result.failure(Exception("Vui lòng nhập email"))
+        return try {
+            supaBaseClientProvider.client.auth.resetPasswordForEmail(
+                email,
+                redirectUrl = "supabase://reset-password"
+            )
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    suspend fun updatePassword(newPassword: String): Result<Unit> {
+        return try {
+            supaBaseClientProvider.client.auth.updateUser {
+
+                password = newPassword
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun handleDeepLink(uri: Uri): Boolean {
+        return try {
+            supaBaseClientProvider.client.auth.exchangeCodeForSession(uri.toString())
+            true
+        } catch (_: Exception) {
+            false
+        }
     }
 
     // Lấy thông tin người dùng hiện tại
@@ -112,6 +140,18 @@ object AuthManager {
         GuestManager.clearGuest(context)
         supaSessionStorage.clearSession(context)
         supaBaseClientProvider.client.auth.signOut()
+    }
+    suspend fun signUp(context: Context,email:String,password: String): Result< Unit >{
+        return try {
+            val result = supaBaseClientProvider.client.auth.signUpWith(Email){
+                this.email = email
+                this.password = password
+            }
+                Result.success(Unit)
+
+        }catch (e: Exception){
+            Result.failure(e)
+        }
     }
 
 }

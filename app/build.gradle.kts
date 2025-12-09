@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.example.notesapp"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.notesapp"
@@ -70,6 +70,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.material3)
     val roomVersion = "2.7.1"
     val navVersion = "2.8.0"
     val lifecycleVersion = "2.8.4"

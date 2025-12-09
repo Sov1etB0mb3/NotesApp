@@ -14,7 +14,14 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.State
+import com.example.notesapp.data.supaBaseClientProvider
+import com.example.notesapp.model.NoteDto
 import com.example.notesapp.util.AuthManager
+import io.github.jan.supabase.postgrest.from
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
 
 
 class NoteViewModel(
@@ -77,7 +84,11 @@ class NoteViewModel(
     }
 
     fun updateNote(note: Note) {
-        viewModelScope.launch { repository.update(note) }
+        viewModelScope.launch {
+            note.synced=false
+            repository.update(note)
+
+        }
     }
 
     fun deleteNote(note: Note) {
@@ -140,7 +151,63 @@ class NoteViewModel(
         _userName.value = "Khách"
         _userId.value = "guest"
     }
+    fun deleteNoteOffline(note: Note) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.update(note.copy(isDeleted = true, synced = false))
+        }
+    }
+
+    fun Note.toDto(): NoteDto = NoteDto(
+        id = id,
+        title = title,
+        content = content,
+        category = category,
+        backgroundColor = backgroundColor,
+        isPinned = isPinned,
+        createdAt = createdAt,
+        updatedAt = updatedAt,
+        userId = userId
+    )
 
 
+     fun syncNotes(ls_note: Flow<List<Note>>) {
+        CoroutineScope(Dispatchers.IO).launch {
+            ls_note.collect { notesList ->
+                notesList.forEach { note ->
+                    try {
+                        // If note is locally marked deleted
+                        if (note.isDeleted) {
+                            supaBaseClientProvider.client.from("tbl_note").delete{
+                                filter {
+                                    eq("id",note.id)
+                                    eq("userId",note.userId)
+
+                                }
+                                deleteNote(note)
+                            }
+
+                        } else if (!note.synced) {
+                            val dto = note.toDto()
+
+                            val request= supaBaseClientProvider.client.from("tbl_note").upsert(dto){
+                                onConflict="id"
+                            }
+
+                            // mark note as synced in local DB
+                            repository.markDownAsSynced(note.id,true)
+                        }
+                    } catch (e: Exception) {
+                        println(e.message)
+                    }
+                }
+            }
+        }
+    }
+     fun updateUserAfterLogin(userID:String) {
+         viewModelScope.launch {
+
+             repository.updateUserAfterLogin(userID)
+         }
+     }
 
 }

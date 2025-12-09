@@ -44,7 +44,9 @@ fun ForgotPasswordScreen(navController: NavController) {
                     val res = AuthManager.resetPassword(email.trim())
                     loading = false
                     res.onSuccess {
+
                         message = "Đã gửi liên kết khôi phục tới $email"
+//                        navController.navigate("new_password")
                     }.onFailure {
                         message = it.message ?: "Khôi phục thất bại"
                     }

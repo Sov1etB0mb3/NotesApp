@@ -66,12 +66,13 @@ fun NotesHomeScreen(
     val fontSize = fontSizes.getOrElse(fontSizeIndex.coerceIn(0, fontSizes.lastIndex)) { 16.sp }
 
     // compute displayed list:
-    val pinned = notes.filter { it.isPinned }
-    val others = notes.filter { !it.isPinned && (
-            selectedCategory == "Tất cả"
+    val notdeleted = notes.filter { !it.isDeleted }
+    val pinned = notdeleted.filter { it.isPinned }
+    val others = notdeleted.filter { !it.isPinned &&
+            (selectedCategory == "Tất cả"
                     || (selectedCategory == "Chưa phân loại" && it.category.isBlank())
-                    || it.category == selectedCategory
-            ) }
+                    || it.category == selectedCategory)
+             }
 
     // update new: filter theo searchQuery
     val displayed = (pinned + others)
@@ -289,7 +290,7 @@ fun NotesHomeScreen(
             text = { Text("Bạn có chắc muốn xóa ghi chú này?") },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.deleteNote(note)
+                    viewModel.deleteNoteOffline(note)
                     showDeleteConfirmFor = null
                 }) { Text("Xóa", color = MaterialTheme.colorScheme.error) }
             },

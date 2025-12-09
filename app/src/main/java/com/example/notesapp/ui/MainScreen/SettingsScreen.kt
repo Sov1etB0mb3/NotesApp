@@ -135,11 +135,12 @@ fun SettingsScreen(
                                 allNote.collect { notesList ->
                                     println("Received list:")
                                     notesList.forEach { note ->
-                                        println("→ ${note.title}: ${note.content}")
+                                        println("→ ${note.title}: ${note.content}[${note.synced}]")
                                     }
                                 }
                             }
-                                syncNote(allNote)
+                            println("Current ID: [${authVM.getUserId()}]")
+                            noteViewModel.syncNotes(allNote)
 
 
                             //endtemp
@@ -218,18 +219,4 @@ fun Alert_ChuaDangNhap(
     )
 }
 }
-private fun syncNote(ls_note: Flow<List<Note>>){
-    CoroutineScope(Dispatchers.IO).launch {
-        ls_note.collect { notesList->
-            try {
 
-                val result= supabase.client.from("tbl_note").insert(notesList)
-
-            }
-            catch (e: Exception){
-                println(e.message)
-            }
-        }
-
-    }
-    }

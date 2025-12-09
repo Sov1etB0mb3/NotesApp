@@ -6,12 +6,15 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.compose.runtime.State
 import androidx.lifecycle.viewModelScope
 import com.example.notesapp.util.AuthManager
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 class authViewModel(application: Application) : AndroidViewModel(application) {
     private val ctx = application.applicationContext
+    private val _signUpResult = MutableStateFlow<Result<Unit>?>(null)
 
     private val _userName = mutableStateOf("Guest")
+
     val userName: State<String> = _userName
 
     private val _userId = mutableStateOf("guest")
@@ -57,6 +60,17 @@ class authViewModel(application: Application) : AndroidViewModel(application) {
             _userName.value = "Khách"
             _userId.value = "guest"
         }
+    }
+
+    fun signUp(email:String, password: String){
+        viewModelScope.launch {
+            val result = AuthManager.signUp(ctx, email, password)
+            _signUpResult.value = result
+        }
+    }
+    fun getUserId(): String{
+        val (name, id) = AuthManager.getCurrentUser(ctx)
+        return id.toString()
     }
 
 }

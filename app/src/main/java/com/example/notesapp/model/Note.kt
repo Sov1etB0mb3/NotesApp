@@ -17,5 +17,6 @@ data class Note(
     val isPinned: Boolean = false,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
-    val synced: Boolean=false
+    var synced: Boolean=false,
+    var isDeleted: Boolean=false
 )

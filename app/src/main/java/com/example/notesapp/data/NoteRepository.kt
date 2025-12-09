@@ -11,4 +11,6 @@ class NoteRepository(private val noteDao: NoteDao) {
     suspend fun update(note: Note) = noteDao.update(note)
     suspend fun delete(note: Note) = noteDao.delete(note)
     suspend fun updatePinned(noteId: String, pinned: Boolean) = noteDao.updatePinned(noteId, pinned)
+    suspend fun markDownAsSynced(noteId:String,synced: Boolean)=noteDao.markDownAsSynced(noteId, synced)
+    suspend fun updateUserAfterLogin(userId: String)=noteDao.updateUserAfterLogin(userId)
 }

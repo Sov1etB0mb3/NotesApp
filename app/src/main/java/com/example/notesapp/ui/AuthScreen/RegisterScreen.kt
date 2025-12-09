@@ -1,5 +1,6 @@
 package com.example.notesapp.ui.AuthScreen
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -7,7 +8,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.notesapp.ui.theme.authViewModel
 import com.example.notesapp.util.AuthManager
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -18,6 +21,7 @@ fun RegisterScreen(navController: NavController) {
     var password by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
+
 
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -52,20 +56,25 @@ fun RegisterScreen(navController: NavController) {
 
             Button(
                 onClick = {
-//                    loading = true
-//                    message = null
-//                    scope.launch {
-//                        val res = AuthManager.signUp(navController.context, email.trim(), password)
-//                        loading = false
-//                        res.onSuccess {
-//                            navController.navigate("login") {
-//                                popUpTo("register") { inclusive = true }
-//                            }
-//
-//                        }.onFailure {
-//                            message = it.message ?: "Đăng ký thất bại"
-//                        }
-//                    }
+                    loading = true
+                    message = null
+                    scope.launch {
+                        val res = AuthManager.signUp(navController.context, email.trim(), password)
+                        loading = false
+                        res.onSuccess {
+                            Toast.makeText(navController.context,
+                                "Đăng ký thành công, vui lòng xác nhận email trong hộp thư của bạn!",
+                                Toast.LENGTH_SHORT).show()
+                            delay(1500)
+                            navController.navigate("login") {
+
+                                popUpTo("register") { inclusive = true }
+                            }
+
+                        }.onFailure {
+                            message = it.message ?: "Đăng ký thất bại"
+                        }
+                    }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !loading

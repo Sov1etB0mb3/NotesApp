@@ -23,6 +23,7 @@ import com.example.notesapp.ui.theme.authViewModel
 fun LoginScreen(
     navController: NavController,
     viewModel: authViewModel,
+    noteViewModel: NoteViewModel,
     onLoggedIn: (() -> Unit)? = null // optional callback for host wiring
 ) {
     val scope = rememberCoroutineScope()
@@ -68,12 +69,20 @@ fun LoginScreen(
                     loading = false
                     res.onSuccess {
                         viewModel.loadUserFromPrefs() //cập nhật ngay
+                        val userId= viewModel.getUserId()
+
+                        noteViewModel.updateUserAfterLogin(userId)
                         onLoggedIn?.invoke()
                         navController.navigate("home") {
                             popUpTo("login") { inclusive = true }
                         }
-                    }.onFailure {
-                        message = it.message ?: "Đăng nhập thất bại"
+                    }.onFailure { error->
+                        message = when {
+                            error.message?.contains("Invalid login credentials", true) == true ->
+                                "Sai email hoặc mật khẩu"
+                            else ->
+                                "Đăng nhập thất bại"
+                        }
                     }
                 }
             }, modifier = Modifier.fillMaxWidth(), enabled = !loading) {

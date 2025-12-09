@@ -24,4 +24,10 @@ interface NoteDao {
 
     @Query("UPDATE notes SET isPinned = :pinned WHERE id = :noteId")
     suspend fun updatePinned(noteId: String, pinned: Boolean)
+
+    @Query("UPDATE notes SET synced = :synced WHERE id = :noteId")
+    suspend fun markDownAsSynced(noteId: String, synced: Boolean)
+    @Query("UPDATE notes SET userId = :userId WHERE userId = 'guest'")
+    suspend fun updateUserAfterLogin(userId: String)
 }
+

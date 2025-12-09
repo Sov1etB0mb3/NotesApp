@@ -1,5 +1,6 @@
 package com.example.notesapp
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -23,8 +24,12 @@ import com.example.notesapp.ui.MainScreen.NotesHomeScreen
 import com.example.notesapp.ui.MainScreen.SettingsScreen
 import com.example.notesapp.ui.theme.NotesAppTheme
 import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.lifecycleScope
 import com.example.notesapp.ui.AuthScreen.LoginScreen
 import com.example.notesapp.ui.theme.authViewModel
+import com.example.notesapp.util.AuthManager
+import com.example.notesapp.util.AuthManager.handleDeepLink
+import kotlinx.coroutines.launch
 
 
 class MainActivity : ComponentActivity() {
@@ -38,8 +43,13 @@ class MainActivity : ComponentActivity() {
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
-        noteViewModel.loadUserFromPrefs() //  tự động load user offline khi mở app
+        lifecycleScope.launch { handleDeepLink(intent )}
+
+
+
+        authVM.loadUserFromPrefs() //  tự động load user offline khi mở app
         setContent {
             val darkMode by noteViewModel.darkMode.collectAsState()
             val fontSizeIndex by noteViewModel.fontSizeIndex.collectAsState()
@@ -48,15 +58,21 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 LaunchedEffect(Unit) {
                     noteViewModel.loadUserFromPrefs()
+                    if(intent.getBooleanExtra("reset_ready",false)){
+                        navController.navigate("newp_password"){
+                            popUpTo("login"){inclusive=false}
+                        }
+                    }
                 }
 
                 NavHost(
                     navController = navController,
-                    startDestination = "home"
+                    startDestination = "login"
                 ) {
                     composable(route="login"){ LoginScreen(
                         navController=navController,
-                        viewModel=authVM
+                        viewModel=authVM,
+                        noteViewModel=noteViewModel
                     ) }
                     // Màn hình chính
                     composable("home") {
@@ -76,7 +92,8 @@ class MainActivity : ComponentActivity() {
                                     Note(
                                         title = title,
                                         content = content,
-                                        category = category
+                                        category = category,
+                                        userId = authVM.getUserId()
                                     )
                                 )
                                 navController.popBackStack()
@@ -112,18 +129,23 @@ class MainActivity : ComponentActivity() {
                         com.example.notesapp.ui.AuthScreen.LoginScreen(
                             navController = navController,
                             onLoggedIn = { navController.navigate("home") },
-                            viewModel = authVM
+                            viewModel = authVM,
+                            noteViewModel = noteViewModel
                         )
                     }
                     composable("register") {
                         com.example.notesapp.ui.AuthScreen.RegisterScreen(
-                            navController = navController
+                            navController = navController,
+
                         )
                     }
                     composable("forgot") {
                         com.example.notesapp.ui.AuthScreen.ForgotPasswordScreen(
                             navController = navController
                         )
+                    }
+                    composable("new_password") {
+                        com.example.notesapp.ui.AuthScreen.NewPasswordScreen(navController)
                     }
 
 
@@ -138,5 +160,28 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
+    }
+     override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        lifecycleScope.launch {
+            handleDeepLink(intent.data!!)
+        }
+    }
+     fun handleDeepLink(intent: Intent) {
+        val uri = intent.data ?: return
+
+        lifecycleScope.launch {
+            val ok = AuthManager.handleDeepLink(uri)
+            if (ok) {
+                startActivity(Intent(this@MainActivity, MainActivity::class.java).apply {
+                    putExtra("reset_ready", true)
+                })
+            }
+
+        }
+
     }
 }
+
+
